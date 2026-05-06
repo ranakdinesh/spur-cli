@@ -455,10 +455,10 @@ func generateDockerCompose(dir string, protocols []string) error {
 
 	sb.WriteString("  backend:\n")
 	sb.WriteString("    build:\n")
-	sb.WriteString("      context: .\n")
+	sb.WriteString("      context: ..\n")
 	sb.WriteString("      dockerfile: Dockerfile.backend\n")
 	sb.WriteString("    restart: unless-stopped\n")
-	sb.WriteString("    env_file: deployments/.env\n")
+	sb.WriteString("    env_file: .env\n")
 	sb.WriteString("    environment:\n")
 	sb.WriteString("      DATABASE_URL: postgres://${POSTGRES_USER:-spur}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-spur}?sslmode=disable\n")
 	sb.WriteString("      REDIS_URL: redis://redis:6379\n")
@@ -467,7 +467,7 @@ func generateDockerCompose(dir string, protocols []string) error {
 		sb.WriteString(p + "\n")
 	}
 	sb.WriteString("    volumes:\n")
-	sb.WriteString("      - ./keys:/app/keys\n")
+	sb.WriteString("      - ../keys:/app/keys:ro\n")
 	sb.WriteString("      - ./data:/app/data\n")
 	sb.WriteString("    labels:\n")
 	sb.WriteString("      app: spur\n")
