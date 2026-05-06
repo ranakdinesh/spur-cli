@@ -346,7 +346,7 @@ func runAddModule(name string) error {
 				Init   string `json:"init"`
 				Routes string `json:"routes"`
 			} `json:"wire_code"`
-			AppField        string   `json:"app_field"`
+			AppField        string   `json:"app_field"` // ← already there
 			AppValue        string   `json:"app_value"`
 			ConfigStruct    string   `json:"config_struct"`
 			ConfigEnvPrefix string   `json:"config_env_prefix"`
@@ -365,29 +365,44 @@ func runAddModule(name string) error {
 		}
 		content := string(appData)
 
+		// Import
 		if manifest.WireCode.Import != "" {
 			content, err = insertBefore(content, "// SPUR:IMPORTS:END", "\t"+manifest.WireCode.Import)
 			if err != nil {
 				return err
 			}
 		}
+		// Module init code
 		if manifest.WireCode.Init != "" {
 			content, err = insertBefore(content, "// SPUR:MODULES:END", "\t"+manifest.WireCode.Init)
 			if err != nil {
 				return err
 			}
 		}
+		// Route registration
 		if manifest.WireCode.Routes != "" {
 			content, err = insertBefore(content, "// SPUR:ROUTES:END", "\t"+manifest.WireCode.Routes)
 			if err != nil {
 				return err
 			}
 		}
-		if manifest.AppValue != "" {
-			content, err = insertBefore(content, "// SPUR:APP_VALUES:END", "\t"+manifest.AppValue)
+		// Struct field declaration (e.g. "Identity *identity.Module")
+		if manifest.AppField != "" {
+			content, err = insertBefore(content, "// SPUR:APP_VALUES:END", "\t"+manifest.AppField)
 			if err != nil {
 				return err
 			}
+		}
+		// Return statement value (e.g. "Identity: identityModule,")
+		if manifest.AppValue != "" {
+			content, err = insertBefore(content, "// SPUR:APP_RETURN:END", "\t"+manifest.AppValue)
+			if err != nil {
+				return err
+			}
+		}
+
+		if err := os.WriteFile(appPath, []byte(content), 0644); err != nil {
+			return fmt.Errorf("write app.go: %w", err)
 		}
 
 		if err := os.WriteFile(appPath, []byte(content), 0644); err != nil {
