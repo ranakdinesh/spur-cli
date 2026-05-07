@@ -405,10 +405,6 @@ func runAddModule(name string) error {
 			return fmt.Errorf("write app.go: %w", err)
 		}
 
-		if err := os.WriteFile(appPath, []byte(content), 0644); err != nil {
-			return fmt.Errorf("write app.go: %w", err)
-		}
-
 		// Step 6: Add env vars to deployments/.env.example
 		envPath := filepath.Join("deployments", ".env.example")
 		envData, err := os.ReadFile(envPath)

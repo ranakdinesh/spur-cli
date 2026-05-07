@@ -60,15 +60,15 @@ func render(tmpl string, data any) (string, error) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type ProjectModuleData struct {
-	Name      string // e.g. "workforce"
-	Title     string // e.g. "Workforce"
-	GoModule  string // e.g. "github.com/ranakdinesh/nilex"
-	HasWS     bool
-	HasSSE    bool
+	Name        string // e.g. "workforce"
+	Title       string // e.g. "Workforce"
+	GoModule    string // e.g. "github.com/ranakdinesh/nilex"
+	HasWS       bool
+	HasSSE      bool
 	HasTemporal bool
-	HasQueue  bool
-	HasGRPC   bool
-	HasI18n   bool
+	HasQueue    bool
+	HasGRPC     bool
+	HasI18n     bool
 }
 
 // CreateProjectModule scaffolds a domain module inside an existing Spur project.
@@ -91,14 +91,14 @@ func CreateProjectModule(base string, d ProjectModuleData) error {
 	}
 
 	files := map[string]string{
-		fmt.Sprintf("%s-module.go", d.Name): projectModuleGo,
-		"core/domain/domain.go":             projectDomainGo,
-		"core/ports/ports.go":               projectPortsGo,
-		"core/services/service.go":          projectServiceGo,
-		"adapters/postgres/store.go":        projectStoreGo,
-		"adapters/httpx/routes.go":          projectRoutesGo,
-		"adapters/httpx/handlers/handler.go": projectHandlerGo,
-		"sql/migrations/embed.go":           projectEmbedGo,
+		fmt.Sprintf("%s-module.go", d.Name):                    projectModuleGo,
+		"core/domain/domain.go":                                projectDomainGo,
+		"core/ports/ports.go":                                  projectPortsGo,
+		"core/services/service.go":                             projectServiceGo,
+		"adapters/postgres/store.go":                           projectStoreGo,
+		"adapters/httpx/routes.go":                             projectRoutesGo,
+		"adapters/httpx/handlers/handler.go":                   projectHandlerGo,
+		"sql/migrations/embed.go":                              projectEmbedGo,
 		fmt.Sprintf("sql/migrations/0001_%s_init.sql", d.Name): projectMigrationSQL,
 		fmt.Sprintf("sql/queries/%s.sql", d.Name):              projectQueriesSQL,
 	}
@@ -155,21 +155,21 @@ func CreateLibModule(base string, d LibModuleData) error {
 	}
 
 	files := map[string]string{
-		"go.mod":                              libGoMod,
-		fmt.Sprintf("%s-module.go", d.Name):  libModuleGo,
-		"core/domain/domain.go":              libDomainGo,
-		"core/ports/ports.go":                libPortsGo,
-		"core/services/service.go":           libServiceGo,
-		"adapters/postgres/store.go":         libStoreGo,
-		"adapters/httpx/routes.go":           libRoutesGo,
-		"adapters/httpx/handlers/handler.go": libHandlerGo,
-		"sql/migrations/embed.go":            libEmbedGo,
+		"go.mod":                                               libGoMod,
+		fmt.Sprintf("%s-module.go", d.Name):                    libModuleGo,
+		"core/domain/domain.go":                                libDomainGo,
+		"core/ports/ports.go":                                  libPortsGo,
+		"core/services/service.go":                             libServiceGo,
+		"adapters/postgres/store.go":                           libStoreGo,
+		"adapters/httpx/routes.go":                             libRoutesGo,
+		"adapters/httpx/handlers/handler.go":                   libHandlerGo,
+		"sql/migrations/embed.go":                              libEmbedGo,
 		fmt.Sprintf("sql/migrations/0001_%s_init.sql", d.Name): libMigrationSQL,
 		fmt.Sprintf("sql/queries/%s.sql", d.Name):              libQueriesSQL,
-		"spur.json":  libSpurJSON,
-		"MODULE.md":  libModuleMD,
-		"README.md":  libReadmeMD,
-		".gitignore": libGitignore,
+		"spur.json":                                            libSpurJSON,
+		"MODULE.md":                                            libModuleMD,
+		"README.md":                                            libReadmeMD,
+		".gitignore":                                           libGitignore,
 	}
 
 	for relPath, tmpl := range files {
@@ -603,7 +603,7 @@ WHERE id = $1 AND tenant_id = $2;
 
 var libGoMod = `module {{.GoPackage}}
 
-go 1.23.1
+go 1.26.2
 
 require (
 	github.com/google/uuid v1.6.0
@@ -693,7 +693,7 @@ func New(ctx context.Context, opt Options) (*Module, error) {
 	opt.Log.Info(ctx).Str("module", "{{.Name}}").Msg("{{.Title}} module initialised")
 
 	return &Module{
-		Services: &Services{{{.Title}}: svc},
+		Services: &Services{ {{.Title}}: svc }, 
 		handler:  h,
 	}, nil
 }
@@ -1194,16 +1194,16 @@ vendor/
 // CreateHandlerFile creates a single handler file for an entity in an existing module.
 func CreateHandlerFile(path, entityName string, d ProjectModuleData) error {
 	content, err := render(singleHandlerGo, struct {
-		Entity    string
-		EntityT   string
-		Module    string
-		ModuleT   string
-		GoModule  string
+		Entity   string
+		EntityT  string
+		Module   string
+		ModuleT  string
+		GoModule string
 	}{
-		Entity:  entityName,
-		EntityT: title(entityName),
-		Module:  d.Name,
-		ModuleT: title(d.Name),
+		Entity:   entityName,
+		EntityT:  title(entityName),
+		Module:   d.Name,
+		ModuleT:  title(d.Name),
 		GoModule: d.GoModule,
 	})
 	if err != nil {

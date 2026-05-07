@@ -1,0 +1,299 @@
+{
+  "modules": [
+    {
+      "name": "identity",
+      "description": "Auth, OAuth2, RBAC, API keys, multi-tenancy",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-identity",
+      "private": true,
+      "status": "stable",
+      "required_env": [
+        "IDENTITY_JWT_SECRET",
+        "FOSITE_GLOBAL_SECRET",
+        "AUTH_CLIENT_ID",
+        "AUTH_CLIENT_SECRET"
+      ],
+      "optional_env": [
+        "IDENTITY_ACCESS_TTL",
+        "IDENTITY_REFRESH_TTL",
+        "IDENTITY_OTP_EXPIRY"
+      ],
+      "has_sqlc": true,
+      "config_struct": "IdentityConfig",
+      "config_env_prefix": "IDENTITY_",
+      "app_field": "Identity *identity.Module",
+      "wire_code": {
+        "import": "identity \"github.com/ranakdinesh/spur-identity\"",
+        "init": "identityModule, err := identity.New(ctx, identity.Options{DB: dbPool, Log: log, Redis: redisClient, Cfg: cfg.Identity, PrivateKey: privateKey})\nif err != nil { return nil, fmt.Errorf(\"identity: %w\", err) }",
+        "routes": "identityModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "notifications",
+      "description": "Email (Resend) and SMS (Twilio) \u2014 async, template engine",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-notifications",
+      "private": true,
+      "status": "stable",
+      "required_env": [
+        "NOTIFICATIONS_PROVIDER_EMAIL",
+        "NOTIFICATIONS_FROM_EMAIL"
+      ],
+      "optional_env": [
+        "NOTIFICATIONS_RESEND_API_KEY",
+        "NOTIFICATIONS_TWILIO_ACCOUNT_SID",
+        "NOTIFICATIONS_TWILIO_AUTH_TOKEN"
+      ],
+      "has_sqlc": true,
+      "config_struct": "NotificationsConfig",
+      "config_env_prefix": "NOTIFICATIONS_",
+      "app_field": "Notifications *notifications.Module",
+      "wire_code": {
+        "import": "notifications \"github.com/ranakdinesh/spur-notifications\"",
+        "init": "notificationsModule, err := notifications.New(ctx, notifications.Options{DB: dbPool, Log: log, Cfg: cfg.Notifications})\nif err != nil { return nil, fmt.Errorf(\"notifications: %w\", err) }\nidentityModule.Services.ModuleService.RegisterManifest(ctx, notificationsModule.Manifest)",
+        "routes": "notificationsModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "storage",
+      "description": "File upload, signed URLs \u2014 S3/R2/local backends",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-storage",
+      "private": true,
+      "status": "stable",
+      "required_env": [
+        "STORAGE_BACKEND"
+      ],
+      "optional_env": [
+        "STORAGE_LOCAL_PATH",
+        "STORAGE_S3_BUCKET",
+        "STORAGE_S3_ENDPOINT",
+        "STORAGE_S3_ACCESS_KEY",
+        "STORAGE_S3_SECRET_KEY",
+        "STORAGE_CDN_URL"
+      ],
+      "has_sqlc": true,
+      "config_struct": "StorageConfig",
+      "config_env_prefix": "STORAGE_",
+      "app_field": "Storage *storage.Module",
+      "wire_code": {
+        "import": "storage \"github.com/ranakdinesh/spur-storage\"",
+        "init": "storageModule, err := storage.New(ctx, storage.Options{DB: dbPool, Log: log, Cfg: cfg.Storage})\nif err != nil { return nil, fmt.Errorf(\"storage: %w\", err) }\nidentityModule.Services.ModuleService.RegisterManifest(ctx, storageModule.Manifest)",
+        "routes": "storageModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "jobs",
+      "description": "Background task queue, cron scheduling \u2014 no external queue needed",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-jobs",
+      "private": true,
+      "status": "stable",
+      "required_env": [],
+      "optional_env": [
+        "JOBS_WORKERS",
+        "JOBS_POLL_INTERVAL",
+        "JOBS_MAX_RETRY",
+        "JOBS_RETENTION_DAYS"
+      ],
+      "has_sqlc": true,
+      "config_struct": "JobsConfig",
+      "config_env_prefix": "JOBS_",
+      "app_field": "Jobs *jobs.Module",
+      "wire_code": {
+        "import": "jobs \"github.com/ranakdinesh/spur-jobs\"",
+        "init": "jobsModule, err := jobs.New(ctx, jobs.Options{DB: dbPool, Log: log, Cfg: cfg.Jobs})\nif err != nil { return nil, fmt.Errorf(\"jobs: %w\", err) }\nidentityModule.Services.ModuleService.RegisterManifest(ctx, jobsModule.Manifest)",
+        "routes": "jobsModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "billing",
+      "description": "Stripe subscriptions, usage metering, checkout sessions",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-billing",
+      "private": true,
+      "status": "stable",
+      "required_env": [
+        "BILLING_STRIPE_SECRET_KEY",
+        "BILLING_STRIPE_WEBHOOK_SECRET"
+      ],
+      "optional_env": [
+        "BILLING_STRIPE_PUBLISHABLE_KEY"
+      ],
+      "has_sqlc": true,
+      "config_struct": "BillingConfig",
+      "config_env_prefix": "BILLING_",
+      "app_field": "Billing *billing.Module",
+      "wire_code": {
+        "import": "billing \"github.com/ranakdinesh/spur-billing\"",
+        "init": "billingModule, err := billing.New(ctx, billing.Options{DB: dbPool, Log: log, Cfg: cfg.Billing})\nif err != nil { return nil, fmt.Errorf(\"billing: %w\", err) }\nidentityModule.Services.ModuleService.RegisterManifest(ctx, billingModule.Manifest)",
+        "routes": "billingModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "audit",
+      "description": "Immutable compliance event log \u2014 append-only, queryable",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-audit",
+      "private": true,
+      "status": "stable",
+      "required_env": [],
+      "optional_env": [
+        "AUDIT_RETENTION_DAYS"
+      ],
+      "has_sqlc": true,
+      "config_struct": "AuditConfig",
+      "config_env_prefix": "AUDIT_",
+      "app_field": "Audit *audit.Module",
+      "wire_code": {
+        "import": "audit \"github.com/ranakdinesh/spur-audit\"",
+        "init": "auditModule, err := audit.New(ctx, audit.Options{DB: dbPool, Log: log})\nif err != nil { return nil, fmt.Errorf(\"audit: %w\", err) }\nidentityModule.Services.ModuleService.RegisterManifest(ctx, auditModule.Manifest)",
+        "routes": "auditModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "webhooks",
+      "description": "Outbound HTTP event delivery \u2014 signed payloads, retry, delivery log",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-webhooks",
+      "private": true,
+      "status": "stable",
+      "required_env": [],
+      "optional_env": [
+        "WEBHOOKS_SIGNING_SECRET"
+      ],
+      "has_sqlc": true,
+      "config_struct": "WebhooksConfig",
+      "config_env_prefix": "WEBHOOKS_",
+      "app_field": "Webhooks *webhooks.Module",
+      "wire_code": {
+        "import": "webhooks \"github.com/ranakdinesh/spur-webhooks\"",
+        "init": "webhooksModule, err := webhooks.New(ctx, webhooks.Options{DB: dbPool, Log: log})\nif err != nil { return nil, fmt.Errorf(\"webhooks: %w\", err) }",
+        "routes": "webhooksModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "realtime",
+      "description": "WebSocket hub + Postgres CDC subscriptions \u2014 live data without polling",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-realtime",
+      "private": true,
+      "status": "stable",
+      "required_env": [],
+      "optional_env": [
+        "REALTIME_PUBLICATION",
+        "WS_ENABLED"
+      ],
+      "has_sqlc": false,
+      "config_struct": "RealtimeConfig",
+      "config_env_prefix": "REALTIME_",
+      "app_field": "Realtime *realtime.Module",
+      "wire_code": {
+        "import": "realtime \"github.com/ranakdinesh/spur-realtime\"",
+        "init": "realtimeModule, err := realtime.New(ctx, realtime.Options{DB: dbPool, Log: log, WS: infra.WS, Cfg: cfg.Realtime})\nif err != nil { return nil, fmt.Errorf(\"realtime: %w\", err) }",
+        "routes": "realtimeModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "i18n",
+      "description": "Write-time translation \u2014 one target language per deployment (ar, de, fr...), async, cached",
+      "version": "1.0.0",
+      "go_package": "github.com/ranakdinesh/spur-i18n",
+      "private": true,
+      "status": "stable",
+      "required_env": [],
+      "optional_env": [
+        "SPUR_LANG",
+        "I18N_PROVIDER",
+        "OPENAI_API_KEY",
+        "DEEPL_API_KEY"
+      ],
+      "has_sqlc": false,
+      "config_struct": "I18nConfig",
+      "config_env_prefix": "I18N_",
+      "app_field": "I18n *i18n.Module",
+      "wire_code": {
+        "import": "i18n \"github.com/ranakdinesh/spur-i18n\"",
+        "init": "i18nModule, err := i18n.New(ctx, i18n.Options{DB: dbPool, Log: log, Cfg: i18n.Config{TargetLanguage: cfg.SpurLang, Provider: cfg.I18NProvider, OpenAIKey: cfg.OpenAIAPIKey, DeepLKey: cfg.DeepLAPIKey}, MigrationRunner: infra.Migrations.Run})\nif err != nil { return nil, fmt.Errorf(\"i18n: %w\", err) }",
+        "routes": "i18nModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "video",
+      "description": "HLS streaming + RTMP ingest \u2014 live video and VOD",
+      "version": "0.8.0",
+      "go_package": "github.com/ranakdinesh/spur-video",
+      "private": true,
+      "status": "beta",
+      "required_env": [
+        "HLS_ENABLED",
+        "RTMP_ENABLED"
+      ],
+      "optional_env": [
+        "HLS_STORAGE_PATH",
+        "HLS_SEGMENT_DUR",
+        "HLS_CDN_URL",
+        "RTMP_ADDR"
+      ],
+      "has_sqlc": true,
+      "config_struct": "VideoConfig",
+      "config_env_prefix": "VIDEO_",
+      "app_field": "Video *video.Module",
+      "wire_code": {
+        "import": "video \"github.com/ranakdinesh/spur-video\"",
+        "init": "videoModule, err := video.New(ctx, video.Options{DB: dbPool, Log: log, HLS: infra.HLS, RTMP: infra.RTMP, Cfg: cfg.Video})\nif err != nil { return nil, fmt.Errorf(\"video: %w\", err) }",
+        "routes": "videoModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "agent",
+      "description": "LLM + pgvector memory + tool registry + Temporal durable workflows",
+      "version": "0.7.0",
+      "go_package": "github.com/ranakdinesh/spur-agent",
+      "private": true,
+      "status": "beta",
+      "required_env": [
+        "AGENT_LLM_PROVIDER",
+        "AGENT_OPENAI_API_KEY"
+      ],
+      "optional_env": [
+        "AGENT_MODEL",
+        "AGENT_EMBEDDING_MODEL",
+        "TEMPORAL_HOST",
+        "AGENT_MAX_TOKENS"
+      ],
+      "has_sqlc": true,
+      "config_struct": "AgentConfig",
+      "config_env_prefix": "AGENT_",
+      "app_field": "Agent *agent.Module",
+      "wire_code": {
+        "import": "agent \"github.com/ranakdinesh/spur-agent\"",
+        "init": "agentModule, err := agent.New(ctx, agent.Options{DB: dbPool, Log: log, Temporal: infra.Temporal, SSE: infra.HTTP.SSE(), Cfg: cfg.Agent})\nif err != nil { return nil, fmt.Errorf(\"agent: %w\", err) }",
+        "routes": "agentModule.RegisterRoutes(r)"
+      }
+    },
+    {
+      "name": "search",
+      "description": "Full-text search via Typesense or Meilisearch \u2014 tenant-scoped, instant results",
+      "version": "0.5.0",
+      "go_package": "github.com/ranakdinesh/spur-search",
+      "private": true,
+      "status": "alpha",
+      "required_env": [
+        "SEARCH_PROVIDER",
+        "SEARCH_HOST",
+        "SEARCH_API_KEY"
+      ],
+      "optional_env": [],
+      "has_sqlc": false,
+      "config_struct": "SearchConfig",
+      "config_env_prefix": "SEARCH_",
+      "app_field": "Search *search.Module",
+      "wire_code": {
+        "import": "search \"github.com/ranakdinesh/spur-search\"",
+        "init": "searchModule, err := search.New(ctx, search.Options{Log: log, Cfg: cfg.Search})\nif err != nil { return nil, fmt.Errorf(\"search: %w\", err) }",
+        "routes": "searchModule.RegisterRoutes(r)"
+      }
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -188,17 +188,14 @@ func verifyPAT(pat string) (string, error) {
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("GitHub returned HTTP %d", resp.StatusCode)
 	}
-	body, _ := io.ReadAll(resp.Body)
-	s := string(body)
-	needle := `"login":"`
-	idx := strings.Index(s, needle)
-	if idx == -1 {
+	var user struct {
+		Login string `json:"login"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 		return "unknown", nil
 	}
-	start := idx + len(needle)
-	end := strings.Index(s[start:], `"`)
-	if end == -1 {
+	if user.Login == "" {
 		return "unknown", nil
 	}
-	return s[start : start+end], nil
+	return user.Login, nil
 }

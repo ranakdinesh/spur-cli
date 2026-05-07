@@ -1,6 +1,6 @@
 module github.com/ranakdinesh/spur-cli
 
-go 1.23.1
+go 1.26.2
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
